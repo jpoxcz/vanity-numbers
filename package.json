@@ -1,0 +1,18 @@
+{
+  "name": "amazon-connect-vanity",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:cdk && npm run build:lambda",
+    "build:cdk": "cd cdk && npm run build",
+    "build:lambda": "cd lambda/vanity && npm install",
+    "cdk": "cd cdk && npx cdk",
+    "deploy": "npm run build && npx cdk deploy --require-approval never",
+    "synth": "npm run build && npx cdk synth"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.170.0",
+    "esbuild": "^0.27.3",
+    "typescript": "~5.6.2"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "app": "node cdk/dist/bin/app.js",
+  "watch": {
+    "include": ["cdk/**", "lambda/**", "connect-flows/**"],
+    "exclude": ["**/*.md", "node_modules", "cdk/node_modules"]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"]
+  }
+}

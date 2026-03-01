@@ -1,0 +1,69 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "invoke-vanity-lambda",
+  "Metadata": {
+    "EntryPointPosition": { "x": 88, "y": 100 },
+    "ActionMetadata": {
+      "invoke-vanity-lambda": { "Position": { "x": 270, "y": 98 } },
+      "play-vanity-options": { "Position": { "x": 450, "y": 98 } },
+      "play-error": { "Position": { "x": 450, "y": 220 } },
+      "disconnect-success": { "Position": { "x": 630, "y": 98 } },
+      "disconnect-error": { "Position": { "x": 630, "y": 220 } }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "invoke-vanity-lambda",
+      "Type": "InvokeLambdaFunction",
+      "Transitions": {
+        "NextAction": "play-vanity-options",
+        "Errors": [
+          { "NextAction": "play-error", "ErrorType": "NoMatchingError" }
+        ],
+        "Conditions": []
+      },
+      "Parameters": {
+        "LambdaFunctionARN": "LAMBDA_ARN_PLACEHOLDER",
+        "InvocationType": "SYNCHRONOUS",
+        "InvocationTimeLimitSeconds": 8,
+        "ResponseValidation": { "ResponseType": "STRING_MAP" }
+      }
+    },
+    {
+      "Identifier": "play-vanity-options",
+      "Type": "MessageParticipant",
+      "Transitions": {
+        "NextAction": "disconnect-success",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Parameters": {
+        "Text": "Your vanity number options are: $.External.vanity1, $.External.vanity2, and $.External.vanity3. Thank you for calling."
+      }
+    },
+    {
+      "Identifier": "play-error",
+      "Type": "MessageParticipant",
+      "Transitions": {
+        "NextAction": "disconnect-error",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Parameters": {
+        "Text": "Sorry, we could not generate vanity numbers at this time. Goodbye."
+      }
+    },
+    {
+      "Identifier": "disconnect-success",
+      "Type": "DisconnectParticipant",
+      "Transitions": {},
+      "Parameters": {}
+    },
+    {
+      "Identifier": "disconnect-error",
+      "Type": "DisconnectParticipant",
+      "Transitions": {},
+      "Parameters": {}
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vanity Numbers – Last 5 Callers</title>
+  <style>
+    :root {
+      --bg: #232f3e;
+      --surface: #37475a;
+      --text: #f5f5f5;
+      --accent: #ff9900;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1 { color: var(--accent); margin-top: 0; }
+    .container { max-width: 640px; margin: 0 auto; }
+    .card {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #aaa; }
+    .card .number { font-size: 1.25rem; font-weight: 600; }
+    .vanity-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+    .vanity-list li { padding: 0.25rem 0; }
+    .error { color: #ff6b6b; }
+    .loading { color: #888; }
+    #api-url { width: 100%; padding: 0.5rem; margin-top: 0.5rem; background: #1a2332; border: 1px solid #555; color: var(--text); border-radius: 4px; }
+    label { display: block; margin-top: 1rem; color: #aaa; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vanity Numbers</h1>
+    <p>Last 5 callers and their suggested vanity numbers.</p>
+    <label for="api-url">API URL (e.g. https://xxxx.execute-api.region.amazonaws.com/prod/last5)</label>
+    <input type="text" id="api-url" placeholder="https://.../last5">
+    <button type="button" id="load">Load</button>
+    <div id="result"></div>
+  </div>
+  <script>
+    const resultEl = document.getElementById('result');
+    const apiUrlEl = document.getElementById('api-url');
+    const loadBtn = document.getElementById('load');
+
+    function render(callers) {
+      if (!callers || callers.length === 0) {
+        resultEl.innerHTML = '<p class="card">No callers yet. Call the Connect number to generate vanity numbers.</p>';
+        return;
+      }
+      resultEl.innerHTML = callers.map(c => {
+        const vanities = [c.vanity1, c.vanity2, c.vanity3, c.vanity4, c.vanity5].filter(Boolean);
+        return `
+          <div class="card">
+            <h2>Caller</h2>
+            <div class="number">${c.callerNumber || '—'}</div>
+            <ul class="vanity-list">
+              ${vanities.map(v => `<li>${v}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function load() {
+      const url = apiUrlEl.value.trim();
+      if (!url) {
+        resultEl.innerHTML = '<p class="error">Please set the API URL (from CDK deploy output: ApiUrl).</p>';
+        return;
+      }
+      resultEl.innerHTML = '<p class="loading">Loading…</p>';
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(res.statusText);
+        const data = await res.json();
+        render(data.callers || []);
+      } catch (e) {
+        resultEl.innerHTML = '<p class="error">Failed to load: ' + e.message + '</p>';
+      }
+    }
+
+    loadBtn.addEventListener('click', load);
+    apiUrlEl.addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+  </script>
+</body>
+</html>
