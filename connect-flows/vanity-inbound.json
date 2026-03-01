@@ -5,10 +5,11 @@
     "EntryPointPosition": { "x": 88, "y": 100 },
     "ActionMetadata": {
       "invoke-vanity-lambda": { "Position": { "x": 270, "y": 98 } },
-      "play-vanity-options": { "Position": { "x": 450, "y": 98 } },
-      "play-error": { "Position": { "x": 450, "y": 220 } },
-      "disconnect-success": { "Position": { "x": 630, "y": 98 } },
-      "disconnect-error": { "Position": { "x": 630, "y": 220 } }
+      "play-vanity-options": { "Position": { "x": 500, "y": 50 } },
+      "play-no-vanity": { "Position": { "x": 500, "y": 170 } },
+      "play-error": { "Position": { "x": 500, "y": 290 } },
+      "disconnect-success": { "Position": { "x": 700, "y": 50 } },
+      "disconnect-error": { "Position": { "x": 700, "y": 230 } }
     }
   },
   "Actions": [
@@ -18,15 +19,28 @@
       "Transitions": {
         "NextAction": "play-vanity-options",
         "Errors": [
-          { "NextAction": "play-error", "ErrorType": "NoMatchingError" }
+          {
+            "NextAction": "play-error",
+            "ErrorType": "NoMatchingError"
+          }
         ],
-        "Conditions": []
+        "Conditions": [
+          {
+            "NextAction": "play-no-vanity",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": ["$.External.vanity1", ""]
+            }
+          }
+        ]
       },
       "Parameters": {
         "LambdaFunctionARN": "LAMBDA_ARN_PLACEHOLDER",
         "InvocationType": "SYNCHRONOUS",
         "InvocationTimeLimitSeconds": 8,
-        "ResponseValidation": { "ResponseType": "STRING_MAP" }
+        "ResponseValidation": {
+          "ResponseType": "STRING_MAP"
+        }
       }
     },
     {
@@ -39,6 +53,18 @@
       },
       "Parameters": {
         "Text": "Your vanity number options are: $.External.vanity1, $.External.vanity2, and $.External.vanity3. Thank you for calling."
+      }
+    },
+    {
+      "Identifier": "play-no-vanity",
+      "Type": "MessageParticipant",
+      "Transitions": {
+        "NextAction": "disconnect-error",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Parameters": {
+        "Text": "Sorry. No vanity numbers available. Goodbye."
       }
     },
     {
