@@ -1,95 +1,354 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vanity Numbers – Last 5 Callers</title>
-  <style>
-    :root {
-      --bg: #232f3e;
-      --surface: #37475a;
-      --text: #f5f5f5;
-      --accent: #ff9900;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vanity Numbers – Last 5 Callers</title>
+    <style>
+      :root {
+        --bg: #0a0a0f;
+        --surface: #12121a;
+        --border: #1e1e2e;
+        --accent: #00ffaa;
+        --accent2: #ff6b6b;
+        --accent3: #ffd166;
+        --text: #e8e8f0;
+        --muted: #5a5a7a;
+        --card: #16161f;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* grid background */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 255, 170, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 255, 170, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 60px 24px 80px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header {
+        margin-bottom: 48px;
+      }
+
+      .badge {
+        display: inline-block;
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 3px 10px;
+        letter-spacing: 2px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: clamp(32px, 6vw, 54px);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -1px;
+      }
+
+      h1 span {
+        color: var(--accent);
+        position: relative;
+      }
+
+      .subtitle {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1.6;
+        max-width: 480px;
+      }
+
+      /* Input area */
+      .input-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 28px;
+        margin-bottom: 32px;
+        position: relative;
+      }
+
+      .input-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--accent);
+      }
+
+      .input-label {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        display: block;
+      }
+
+      .input-row {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: "Space Mono", monospace;
+        font-size: 22px;
+        padding: 14px 18px;
+        letter-spacing: 3px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--accent);
+      }
+
+      input[type="text"]::placeholder {
+        color: var(--muted);
+        letter-spacing: 2px;
+      }
+
+      .btn-generate {
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 14px 24px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .btn-generate:hover {
+        background: #00e699;
+        transform: translateY(-1px);
+      }
+
+      .btn-generate:active {
+        transform: translateY(0);
+      }
+
+      /* Results */
+      .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .results-header.visible {
+        opacity: 1;
+      }
+
+      .results-title {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .results-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .result-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        opacity: 0;
+        transform: translateY(16px);
+        transition:
+          opacity 0.35s,
+          transform 0.35s,
+          border-color 0.2s;
+        cursor: default;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .result-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .result-card:hover {
+        border-color: var(--accent);
+      }
+
+      .vanity-display {
+        flex: 1;
+        font-family: "Space Mono", monospace;
+        font-size: clamp(18px, 3.5vw, 26px);
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: var(--text);
+      }
+
+      .top5 {
+        list-style: decimal;
+        padding-left: 20px;
+        font-family: system-ui, sans-serif;
+      }
+
+      .top5 li {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Vanity Numbers</h1>
+        <p class="subtitle">
+          Last 5 callers and their suggested vanity numbers. API URL (e.g.
+          https://xxxx.execute-api.region.amazonaws.com/prod/last5)
+        </p>
+      </div>
+      <div class="input-section">
+        <label class="input-label" for="api-url">Enter API URL</label>
+        <div class="input-row">
+          <input type="text" id="api-url" placeholder="https://.../last5" />
+          <button class="btn-generate" type="button" id="load">Load</button>
+        </div>
+      </div>
+
+      <div class="results-header" id="resultsHeader">
+        <span class="results-title">Top 5 Recent Calls</span>
+        <span class="results-digits" id="resultsDigits"></span>
+      </div>
+
+      <div id="result"></div>
+    </div>
+    <script>
+      const resultEl = document.getElementById("result");
+      const apiUrlEl = document.getElementById("api-url");
+      const loadBtn = document.getElementById("load");
+      const header = document.getElementById("resultsHeader");
+      const empty = document.getElementById("emptyState");
+
+      function render(callers) {
+        if (!callers || callers.length === 0) {
+          resultEl.innerHTML =
+            '<p class="card">No callers yet. Call the Connect number to generate vanity numbers.</p>';
+          return;
+        }
+
+        header.classList.add("visible");
+
+        callers.map((c, i) => {
+          const card = document.createElement("div");
+          card.className = "result-card";
+
+          const vanities = [
+            c.vanity1,
+            c.vanity2,
+            c.vanity3,
+            c.vanity4,
+            c.vanity5,
+          ].filter(Boolean);
+          card.innerHTML = `
+  <div style="flex:1">
+    <div class="vanity-display">
+      Caller: ${c.callerNumber || "—"}
+    </div>
+    <div class="subtitle">Top 5 Vanities</div>
+
+    ${
+      vanities.length === 0
+        ? `<div class="no-vanity">No vanity numbers available</div>`
+        : `
+          <ul class="top5">
+            ${vanities.map((v) => `<li>${v}</li>`).join("")}
+          </ul>
+        `
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      min-height: 100vh;
-      padding: 2rem;
-    }
-    h1 { color: var(--accent); margin-top: 0; }
-    .container { max-width: 640px; margin: 0 auto; }
-    .card {
-      background: var(--surface);
-      border-radius: 8px;
-      padding: 1rem 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .card h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #aaa; }
-    .card .number { font-size: 1.25rem; font-weight: 600; }
-    .vanity-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
-    .vanity-list li { padding: 0.25rem 0; }
-    .error { color: #ff6b6b; }
-    .loading { color: #888; }
-    #api-url { width: 100%; padding: 0.5rem; margin-top: 0.5rem; background: #1a2332; border: 1px solid #555; color: var(--text); border-radius: 4px; }
-    label { display: block; margin-top: 1rem; color: #aaa; font-size: 0.9rem; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Vanity Numbers</h1>
-    <p>Last 5 callers and their suggested vanity numbers.</p>
-    <label for="api-url">API URL (e.g. https://xxxx.execute-api.region.amazonaws.com/prod/last5)</label>
-    <input type="text" id="api-url" placeholder="https://.../last5">
-    <button type="button" id="load">Load</button>
-    <div id="result"></div>
+
   </div>
-  <script>
-    const resultEl = document.getElementById('result');
-    const apiUrlEl = document.getElementById('api-url');
-    const loadBtn = document.getElementById('load');
+`;
+          resultEl.appendChild(card);
 
-    function render(callers) {
-      if (!callers || callers.length === 0) {
-        resultEl.innerHTML = '<p class="card">No callers yet. Call the Connect number to generate vanity numbers.</p>';
-        return;
+          setTimeout(() => {
+            card.classList.add("visible");
+          }, i * 80);
+        });
       }
-      resultEl.innerHTML = callers.map(c => {
-        const vanities = [c.vanity1, c.vanity2, c.vanity3, c.vanity4, c.vanity5].filter(Boolean);
-        return `
-          <div class="card">
-            <h2>Caller</h2>
-            <div class="number">${c.callerNumber || '—'}</div>
-            <ul class="vanity-list">
-              ${vanities.map(v => `<li>${v}</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      }).join('');
-    }
 
-    async function load() {
-      const url = apiUrlEl.value.trim();
-      if (!url) {
-        resultEl.innerHTML = '<p class="error">Please set the API URL (from CDK deploy output: ApiUrl).</p>';
-        return;
-      }
-      resultEl.innerHTML = '<p class="loading">Loading…</p>';
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(res.statusText);
-        const data = await res.json();
-        render(data.callers || []);
-      } catch (e) {
-        resultEl.innerHTML = '<p class="error">Failed to load: ' + e.message + '</p>';
-      }
-    }
+      async function load() {
+        header.classList.remove("visible");
+        const url = apiUrlEl.value.trim();
+        if (!url) {
+          resultEl.innerHTML =
+            '<p class="error">Please set the API URL (from CDK deploy output: ApiUrl).</p>';
+          return;
+        }
 
-    loadBtn.addEventListener('click', load);
-    apiUrlEl.addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
-  </script>
-</body>
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(res.statusText);
+          const data = await res.json();
+          render(data.callers || []);
+        } catch (e) {
+          resultEl.innerHTML =
+            '<p class="error">Failed to load: ' + e.message + "</p>";
+        }
+      }
+
+      loadBtn.addEventListener("click", load);
+      apiUrlEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") load();
+      });
+    </script>
+  </body>
 </html>

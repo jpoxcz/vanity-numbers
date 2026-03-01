@@ -82,13 +82,7 @@ export class VanityStack extends cdk.Stack {
       "ListCallersLambda",
       {
         runtime: lambda.Runtime.NODEJS_20_X,
-        entry: path.join(
-          repoRoot,
-          "lambda",
-          "list-callers",
-          "src",
-          "index.ts",
-        ),
+        entry: path.join(repoRoot, "lambda", "list-callers", "src", "index.ts"),
         handler: "handler",
         environment: { VANITY_TABLE_NAME: table.tableName },
         bundling: {
@@ -128,15 +122,23 @@ export class VanityStack extends cdk.Stack {
       websiteIndexDocument: "index.html",
       publicReadAccess: true,
     });
+
     const webDir = path.join(repoRoot, "web-app");
-    console.log("webDir", webDir);
-    console.log("fs.existsSync(webDir)", fs.existsSync(webDir));
-   
+
+    if (!fs.existsSync(webDir)) {
+      throw new Error(
+        `[DeployWeb] webDir not found: "${webDir}". ` +
+          `Check the folder name and that repoRoot is correct: "${repoRoot}"`,
+      );
+    }
+
     new s3deploy.BucketDeployment(this, "DeployWeb", {
       sources: [s3deploy.Source.asset(webDir)],
       destinationBucket: webBucket,
+      prune: true,
+      memoryLimit: 512, // ← default 128MB can silently fail on larger assets
+      contentType: "text/html",
     });
-    
 
     if (enableConnect) {
       // Amazon Connect instance (optional: creates instance; claim number in console)

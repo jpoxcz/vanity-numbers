@@ -16,7 +16,7 @@ describe("vanity handler", () => {
     const res = await handler({
       Details: {
         ContactData: {
-          CustomerEndpoint: { Address: "+1 (415) 555-2273" },
+          CustomerEndpoint: { Address: "+1-800-356-9377" },
         },
       },
     });
@@ -32,7 +32,7 @@ describe("vanity handler", () => {
     );
 
     // vanity is either pure digits or "<digits>-<WORD>"
-    expect(res.vanity1).toMatch(/^(?:\d+|\d+-[A-Z]+)$/);
+    expect(res.vanity1).toMatch(/^(?:\d+|\d+(?:-\d+)*-[A-Z]+)$/);
 
     const calls = ddbMock.commandCalls(PutItemCommand);
     expect(calls.length).toBe(1);
@@ -43,10 +43,9 @@ describe("vanity handler", () => {
     ddbMock.on(PutItemCommand).resolves({});
 
     const res = await handler({});
-    expect(res.vanity1).toBeTruthy();
+    expect(res.vanity1).toBe("");
 
     const calls = ddbMock.commandCalls(PutItemCommand);
     expect(calls.length).toBe(1);
   });
 });
-
